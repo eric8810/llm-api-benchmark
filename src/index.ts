@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 
+// Add this line at the top of the file to suppress the warning
+process.removeAllListeners("warning");
+
 import { Command } from "commander";
 import chalk from "chalk";
 import { ChatCompletionMessageParam } from "openai/resources";
 import { streamOpenAIQuery } from "./llm";
+import { TestResult } from "./types";
 
 const DEFAULT_MESSAGES: Array<ChatCompletionMessageParam> = [
   {
@@ -80,29 +84,64 @@ program
     "Type of model (chat, reason, completion)",
     "chat"
   )
+  .option("-n, --iterations <number>", "Number of test iterations", "1")
   .action(async (options) => {
     console.log(chalk.blue("Starting benchmark..."));
-    if (options.type === "reason") {
-      console.log(chalk.blue("Starting reasoning test..."));
-      try {
-        await streamOpenAIQuery(
-          options.model,
-          options.url,
-          options.apiKey,
-          REASONING_MESSAGES,
-          0.7
-        );
-      } catch (error) {
-        console.error(chalk.red("Error:", error));
+    const iterations = parseInt(options.iterations);
+    const results: TestResult[] = [];
+
+    for (let i = 0; i < iterations; i++) {
+      console.log(chalk.blue(`\nIteration ${i + 1}/${iterations}`));
+      if (options.type === "reason") {
+        console.log(chalk.blue("Starting reasoning test..."));
+        try {
+          const result = await streamOpenAIQuery(
+            options.model,
+            options.url,
+            options.apiKey,
+            REASONING_MESSAGES,
+            0.7
+          );
+          results.push({ ...result });
+        } catch (error) {
+          console.error(chalk.red("Error:", error));
+        }
+      } else {
+        console.log(chalk.blue("Starting chat test..."));
+        try {
+          const result = await streamOpenAIQuery(
+            options.model,
+            options.url,
+            options.apiKey,
+            DEFAULT_MESSAGES,
+            0.7
+          );
+          results.push({ ...result });
+        } catch (error) {
+          console.error(chalk.red("Error:", error));
+        }
       }
-    } else {
-      console.log(chalk.blue("Starting chat test..."));
-      streamOpenAIQuery(
-        options.model,
-        options.url,
-        options.apiKey,
-        DEFAULT_MESSAGES,
-        0.7
+    }
+
+    // Print aggregate statistics
+    if (results.length > 0) {
+      const avgTftt =
+        results.reduce((acc, r) => acc + r.tftt, 0) / results.length;
+      const avgDuration =
+        results.reduce((acc, r) => acc + r.duration, 0) / results.length;
+      const avgTokens =
+        results.reduce((acc, r) => acc + r.tokens, 0) / results.length;
+      const avgTokensPerSecond =
+        results.reduce((acc, r) => acc + r.tokensPerSecond, 0) / results.length;
+
+      console.log(chalk.green("\nAggregate Statistics:"));
+      console.log(chalk.green(`Average TFTT: ${Math.round(avgTftt)}ms`));
+      console.log(
+        chalk.green(`Average Duration: ${Math.round(avgDuration)}ms`)
+      );
+      console.log(chalk.green(`Average Tokens: ${Math.round(avgTokens)}`));
+      console.log(
+        chalk.green(`Average Tokens/s: ${Math.round(avgTokensPerSecond)}`)
       );
     }
   });

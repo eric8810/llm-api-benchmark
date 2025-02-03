@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import OpenAI from "openai";
 import { ChatCompletionMessageParam } from "openai/resources";
+import { TestResult } from "./types";
 
 export async function streamOpenAIQuery(
   model: string = "gpt-3.5-turbo",
@@ -8,10 +9,11 @@ export async function streamOpenAIQuery(
   apiKey: string = process.env.OPENAI_API_KEY || "",
   messages: Array<ChatCompletionMessageParam> = [],
   temperature: number = 0.7
-): Promise<string> {
+): Promise<TestResult> {
   try {
     console.log(chalk.blue("Starting query..."));
     const startTime = Date.now();
+    let tftt = 0;
     const openai = new OpenAI({
       apiKey: apiKey,
       baseURL: baseUrl,
@@ -30,7 +32,7 @@ export async function streamOpenAIQuery(
     let tokens = 0;
     for await (const chunk of stream) {
       if (first) {
-        const tftt = Date.now() - startTime;
+        tftt = Date.now() - startTime;
         console.log(chalk.blue(`TFTT: ${tftt}ms`));
         first = false;
       }
@@ -57,13 +59,21 @@ export async function streamOpenAIQuery(
 
     const endTime = Date.now();
     const duration = endTime - startTime;
+    const tokensPerSecond = Math.round(tokens / (duration / 1000));
+
     console.log("\n");
     console.log(`Time taken: ${duration}ms`);
     console.log(`Tokens: ${tokens}`);
-    console.log(`Token/s: ${Math.round(tokens / (duration / 1000))}`);
-    return "Done";
+    console.log(`Token/s: ${tokensPerSecond}`);
+
+    return {
+      tftt,
+      duration,
+      tokens,
+      tokensPerSecond,
+    };
   } catch (error) {
     console.error(chalk.red("Error:", error));
-    return "Error";
+    throw error;
   }
 }

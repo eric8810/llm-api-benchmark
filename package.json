@@ -1,6 +1,6 @@
 {
   "name": "llmbench",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "benchmark the llm api user want to test...",
   "main": "dist/index.js",
   "bin": {
@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts"
+    "dev": "ts-node src/index.ts",
+    "prepublishOnly": "npm run build"
   },
   "repository": "git@github.com:eric8810/llm-api-benchmark.git",
   "author": "eric8810 <ericted8810@gmail.com>",
