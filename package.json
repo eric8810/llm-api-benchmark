@@ -1,0 +1,28 @@
+{
+  "name": "llmbench",
+  "version": "1.0.0",
+  "description": "benchmark the llm api user want to test...",
+  "main": "dist/index.js",
+  "bin": {
+    "llmbench": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "repository": "git@github.com:eric8810/llm-api-benchmark.git",
+  "author": "eric8810 <ericted8810@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "openai": "^4.82.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
