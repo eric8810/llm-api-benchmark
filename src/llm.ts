@@ -36,11 +36,15 @@ export async function streamOpenAIQuery(
         console.log(chalk.blue(`TFTT: ${tftt}ms`));
         first = false;
       }
+
+      const content =
+        chunk.choices[0]?.delta?.content ||
+        (chunk.choices[0]?.delta as any)?.reasoning_content ||
+        "";
       if (chunk.usage) {
-        console.log(chunk.usage);
-      }
-      const content = chunk.choices[0]?.delta?.content ?? "";
-      if (content) {
+        // console.log(chunk.usage);
+        tokens = chunk.usage.completion_tokens;
+      } else if (content) {
         tokens++;
       }
       fullResponse += content;

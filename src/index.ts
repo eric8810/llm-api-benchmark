@@ -121,6 +121,10 @@ program
           console.error(chalk.red("Error:", error));
         }
       }
+      if (i < iterations - 1) {
+        console.log(chalk.blue("\nWaiting 5 seconds before next iteration..."));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
     }
 
     // Print aggregate statistics
